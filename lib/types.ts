@@ -1,5 +1,7 @@
 export type SaveSource = "es3" | "json" | "demo";
 
+export type SnapshotId = "starter" | "day59" | "live";
+
 export type TabId =
   | "index"
   | "objectives"
@@ -60,6 +62,7 @@ export type CustomNote = {
 export type NotebookStatus = {
   watching: boolean;
   useDemo: boolean;
+  snapshot: SnapshotId;
   watchPath: string;
   resolvedPath: string;
   lastSync: string | null;
@@ -73,6 +76,7 @@ export type NotebookStatus = {
 };
 
 export type Settings = {
+  snapshot: SnapshotId;
   useDemo: boolean;
   watchPath: string;
 };

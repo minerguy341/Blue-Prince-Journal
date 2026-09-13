@@ -31,6 +31,12 @@ export const metadata: Metadata = {
     "A spiral-bound Mount Holly notebook that files only what your Blue Prince save has already found.",
 };
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+};
+
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html

@@ -1,34 +1,43 @@
 import fs from "node:fs";
 
 import { defaultWatchPath, ensureDataDirs, SETTINGS_PATH } from "@/lib/paths";
-import type { Settings } from "@/lib/types";
+import type { Settings, SnapshotId } from "@/lib/types";
 
-const FALLBACK: Settings = {
-  useDemo: true,
-  watchPath: defaultWatchPath(),
-};
+function normalize(partial: Partial<Settings>): Settings {
+  const watchPath = typeof partial.watchPath === "string" ? partial.watchPath : defaultWatchPath();
+  let snapshot: SnapshotId = "starter";
+  if (partial.snapshot === "starter" || partial.snapshot === "day59" || partial.snapshot === "live") {
+    snapshot = partial.snapshot;
+  } else if (partial.useDemo === false) {
+    snapshot = "live";
+  }
+  return {
+    snapshot,
+    useDemo: snapshot !== "live",
+    watchPath,
+  };
+}
 
 export function readSettings(): Settings {
   ensureDataDirs();
   try {
     const raw = fs.readFileSync(SETTINGS_PATH, "utf8");
     const parsed = JSON.parse(raw) as Partial<Settings>;
-    return {
-      useDemo: parsed.useDemo ?? true,
-      watchPath: typeof parsed.watchPath === "string" ? parsed.watchPath : FALLBACK.watchPath,
-    };
+    const settings = normalize(parsed);
+    if (parsed.snapshot !== settings.snapshot || parsed.useDemo !== settings.useDemo) {
+      writeSettings(settings);
+    }
+    return settings;
   } catch {
-    writeSettings(FALLBACK);
-    return { ...FALLBACK };
+    const fallback = normalize({ snapshot: "starter", useDemo: true, watchPath: defaultWatchPath() });
+    writeSettings(fallback);
+    return fallback;
   }
 }
 
-export function writeSettings(next: Settings): Settings {
+export function writeSettings(next: Settings | Partial<Settings>): Settings {
   ensureDataDirs();
-  const settings: Settings = {
-    useDemo: Boolean(next.useDemo),
-    watchPath: next.watchPath?.trim() ?? "",
-  };
+  const settings = normalize(next);
   fs.writeFileSync(SETTINGS_PATH, JSON.stringify(settings, null, 2));
   return settings;
 }

@@ -5,11 +5,18 @@ import chokidar from "chokidar";
 
 import { buildDemoSave, demoExportJson } from "@/lib/demo-fixture";
 import { readNotes } from "@/lib/notes-store";
-import { DEMO_DIR, DEMO_EXPORT_PATH, ensureDataDirs } from "@/lib/paths";
+import {
+  DEMO_DIR,
+  DEMO_EXPORT_PATH,
+  STARTER_DIR,
+  STARTER_EXPORT_PATH,
+  ensureDataDirs,
+} from "@/lib/paths";
 import { parseSaveBytes } from "@/lib/parse-save";
 import { readSettings, writeSettings } from "@/lib/settings";
 import { buildRevealedNotebook } from "@/lib/spoiler-gate";
-import type { NotebookPayload, ParsedSave, Settings } from "@/lib/types";
+import { buildStarterSave, starterExportJson } from "@/lib/starter-fixture";
+import type { NotebookPayload, ParsedSave, Settings, SnapshotId } from "@/lib/types";
 
 type Listener = () => void;
 
@@ -24,11 +31,20 @@ function emit() {
   for (const listener of listeners) listener();
 }
 
-function writeDemoExportIfMissing() {
+function writeBundledExports() {
   ensureDataDirs();
   if (!fs.existsSync(DEMO_EXPORT_PATH)) {
     fs.writeFileSync(DEMO_EXPORT_PATH, JSON.stringify(demoExportJson(), null, 2));
   }
+  if (!fs.existsSync(STARTER_EXPORT_PATH)) {
+    fs.writeFileSync(STARTER_EXPORT_PATH, JSON.stringify(starterExportJson(), null, 2));
+  }
+}
+
+function snapshotDir(snapshot: SnapshotId): string {
+  if (snapshot === "day59") return DEMO_DIR;
+  if (snapshot === "starter") return STARTER_DIR;
+  return "";
 }
 
 function statMtime(filePath: string): string | null {
@@ -75,23 +91,29 @@ function loadFromDir(dir: string, sourceHint?: ParsedSave["source"]): ParsedSave
   throw new Error(lastFailure || "No readable save in folder");
 }
 
+function fallbackBundled(snapshot: SnapshotId): ParsedSave {
+  if (snapshot === "day59") return buildDemoSave(DEMO_EXPORT_PATH);
+  return buildStarterSave(STARTER_EXPORT_PATH);
+}
+
 function reload() {
   const settings = readSettings();
   try {
-    if (settings.useDemo) {
-      writeDemoExportIfMissing();
+    if (settings.snapshot !== "live") {
+      writeBundledExports();
+      const dir = snapshotDir(settings.snapshot);
       try {
-        const fromDisk = loadFromDir(DEMO_DIR, "demo");
-        cachedSave = fromDisk ?? buildDemoSave(DEMO_EXPORT_PATH);
+        const fromDisk = loadFromDir(dir, "demo");
+        cachedSave = fromDisk ?? fallbackBundled(settings.snapshot);
       } catch {
-        cachedSave = buildDemoSave(DEMO_EXPORT_PATH);
+        cachedSave = fallbackBundled(settings.snapshot);
       }
       lastError = null;
     } else {
       const dir = settings.watchPath.trim();
       if (!dir) {
         cachedSave = null;
-        lastError = "Set a save folder, or keep the demo estate open.";
+        lastError = "Set a save folder, or keep a bundled morning open.";
       } else if (!fs.existsSync(dir)) {
         cachedSave = null;
         lastError = `Nothing at ${dir}. The game writes to AppData\\LocalLow\\Dogubomb\\BLUE PRINCE\\storage.`;
@@ -111,7 +133,7 @@ function reload() {
 
 function syncWatcher() {
   const settings = readSettings();
-  const dir = settings.useDemo ? DEMO_DIR : settings.watchPath.trim();
+  const dir = settings.snapshot === "live" ? settings.watchPath.trim() : snapshotDir(settings.snapshot);
   if (dir === watchedDir && watcher) return;
   if (watcher) {
     void watcher.close();
@@ -119,7 +141,7 @@ function syncWatcher() {
     watchedDir = "";
   }
   if (!dir) return;
-  writeDemoExportIfMissing();
+  writeBundledExports();
   watcher = chokidar.watch(dir, {
     ignoreInitial: true,
     awaitWriteFinish: { stabilityThreshold: 400, pollInterval: 100 },
@@ -134,7 +156,7 @@ export function subscribe(listener: Listener): () => void {
   return () => listeners.delete(listener);
 }
 
-export function applySettings(next: Settings): Settings {
+export function applySettings(next: Settings | Partial<Settings>): Settings {
   const saved = writeSettings(next);
   syncWatcher();
   reload();
@@ -147,13 +169,15 @@ export function getNotebook(): NotebookPayload {
     reload();
   }
   const settings = readSettings();
-  const resolvedPath = settings.useDemo ? DEMO_DIR : settings.watchPath;
+  const resolvedPath =
+    settings.snapshot === "live" ? settings.watchPath : snapshotDir(settings.snapshot);
   const notes = cachedSave ? readNotes(cachedSave.fingerprint) : [];
   return buildRevealedNotebook(cachedSave, {
     notes,
     status: {
       watching: Boolean(watcher && watchedDir),
       useDemo: settings.useDemo,
+      snapshot: settings.snapshot,
       watchPath: settings.watchPath,
       resolvedPath,
       lastSync,
@@ -182,4 +206,4 @@ export function notifyNotebook() {
 }
 
 ensureDataDirs();
-writeDemoExportIfMissing();
+writeBundledExports();

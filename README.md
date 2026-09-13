@@ -11,12 +11,14 @@ npm install
 npm run dev
 ```
 
-Open [http://127.0.0.1:43147](http://127.0.0.1:43147). The first launch loads a bundled **Day 59 demo snapshot** so you can browse immediately.
+Open [http://127.0.0.1:43147](http://127.0.0.1:43147). The first launch loads a bundled **first-morning** snapshot (Day 1 scale) so the notebook is playable on a phone without a Windows save.
+
+On a later estate you can switch Settings to the bundled Day 59 snapshot, or point the watcher at a live storage folder.
 
 ### Point it at your live save
 
 1. Open the **Settings** tab.
-2. Uncheck the demo snapshot.
+2. Choose **Live folder**.
 3. Set the folder to your Blue Prince storage directory, usually:
 
 `C:\Users\<you>\AppData\LocalLow\Dogubomb\BLUE PRINCE\storage`
@@ -39,10 +41,10 @@ The catalog may know about flags. The page may not. Unread mail, unopened vaults
 ## What it files
 
 - **Index** — day stamp, allowance, open threads, facts this save already holds
-- **Objectives** — threads you have already opened (sanctum work, trophies, discs, west path, foundation, boilers)
-- **Documents** — mail, red envelopes, drafting volumes, terminal password, and other read items
+- **Objectives** — threads you have already opened
+- **Documents** — letters and other items this save has already read
 - **Secrets** — discoveries whose flags are true
 - **Rooms** — draft counts greater than zero
-- **Notes** — handwritten pages, including the seeded chess / precipice list on the demo estate
+- **Notes** — handwritten pages (the first-morning snapshot seeds a short Day 1 list)
 
 This is a companion, not a walkthrough.

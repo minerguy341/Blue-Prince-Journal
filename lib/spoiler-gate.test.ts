@@ -5,6 +5,11 @@ import { emptyParsedSave, revealEntries, revealRooms } from "@/lib/catalog";
 import { buildDemoSave } from "@/lib/demo-fixture";
 import { parseSaveDocument } from "@/lib/parse-save";
 import { catalogTextBlob } from "@/lib/spoiler-gate";
+import {
+  buildStarterSave,
+  starterExportJson,
+  starterFingerprint,
+} from "@/lib/starter-fixture";
 
 test("day 59 demo files opened threads and hides the rest", () => {
   const save = buildDemoSave();
@@ -31,6 +36,51 @@ test("day 59 demo files opened threads and hides the rest", () => {
   assert.ok(rooms.some((room) => room.name.toLowerCase().includes("bedroom")));
   assert.ok(!rooms.some((room) => /throne|treasure trove|lost/i.test(room.name)));
   assert.ok(entries.some((entry) => entry.id === "sec-draft-pool" && /solarium/i.test(entry.summary)));
+});
+
+test("starter morning files only first-day findings", () => {
+  const save = buildStarterSave();
+  const entries = revealEntries(save);
+  const rooms = revealRooms(save);
+  const blob = catalogTextBlob(entries);
+
+  assert.equal(save.day, 1);
+  assert.equal(save.allowance, 2);
+  assert.ok(entries.some((entry) => entry.id === "doc-invitation"));
+  assert.ok(entries.some((entry) => entry.id === "sec-blackprint"));
+  assert.ok(entries.some((entry) => entry.id === "sec-allowance"));
+  assert.equal(
+    entries.filter((entry) => entry.kind === "objective").length,
+    0,
+  );
+  assert.deepEqual(
+    rooms.map((room) => room.name).sort(),
+    ["Bedroom", "Closet", "Entrance Hall", "Hallway"],
+  );
+  assert.doesNotMatch(blob, /room 46/);
+  assert.doesNotMatch(blob, /sanctum/);
+  assert.doesNotMatch(blob, /throne/);
+  assert.doesNotMatch(blob, /swansong/);
+  assert.doesNotMatch(blob, /red envelope/);
+  assert.doesNotMatch(blob, /vault/);
+  assert.doesNotMatch(blob, /orchard/);
+  assert.doesNotMatch(blob, /antechamber/);
+  assert.doesNotMatch(blob, /trophy/);
+  assert.doesNotMatch(blob, /office mail/);
+  assert.doesNotMatch(blob, /drafting strategy/);
+});
+
+test("starter export parses with the starter fingerprint", () => {
+  const parsed = parseSaveDocument(starterExportJson(), {
+    path: "data/starter-storage/blueprint-export.json",
+    fileName: "blueprint-export.json",
+    mtime: null,
+    source: "json",
+  });
+  assert.equal(parsed.fingerprint, starterFingerprint());
+  assert.equal(parsed.day, 1);
+  assert.equal(parsed.flags.PickedupBluePrint, true);
+  assert.equal(parsed.flags["Room 46 Reached"], undefined);
 });
 
 test("empty save reveals nothing", () => {

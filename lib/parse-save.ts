@@ -117,10 +117,12 @@ export function parseSaveDocument(
     (typeof root.game_version === "string" && root.game_version) ||
     classified.strings.game_version ||
     null;
+  const extra =
+    root.snapshot === "starter" ? "starter" : source === "demo" ? "demo" : "";
   const day = classified.numbers.DAY ?? 0;
   const allowance = classified.numbers.allowance ?? 0;
   return {
-    fingerprint: fingerprintSave(slot, saveCreated, source === "demo" ? "demo" : ""),
+    fingerprint: fingerprintSave(slot, saveCreated, extra),
     slot,
     source,
     fileName: info.fileName,

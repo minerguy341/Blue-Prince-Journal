@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 import { DEMO_CHESS_NOTE, demoFingerprint } from "@/lib/demo-fixture";
+import { STARTER_MORNING_NOTE, starterFingerprint } from "@/lib/starter-fixture";
 import { NOTES_DIR, ensureDataDirs } from "@/lib/paths";
 import type { CustomNote } from "@/lib/types";
 
@@ -19,15 +20,14 @@ function nowIso(): string {
 }
 
 function seedFor(fingerprint: string): CustomNote[] {
-  if (fingerprint !== demoFingerprint()) return [];
   const stamp = nowIso();
-  return [
-    {
-      ...DEMO_CHESS_NOTE,
-      createdAt: stamp,
-      updatedAt: stamp,
-    },
-  ];
+  if (fingerprint === starterFingerprint()) {
+    return [{ ...STARTER_MORNING_NOTE, createdAt: stamp, updatedAt: stamp }];
+  }
+  if (fingerprint === demoFingerprint()) {
+    return [{ ...DEMO_CHESS_NOTE, createdAt: stamp, updatedAt: stamp }];
+  }
+  return [];
 }
 
 export function readNotes(fingerprint: string): CustomNote[] {

@@ -324,6 +324,16 @@ const CATALOG: CatalogDef[] = [
     detail: () => "You have stood in Room 46. Later doors stay blank until this save opens them.",
   },
   {
+    id: "doc-invitation",
+    kind: "document",
+    title: "Letter of arrival",
+    tags: ["estate"],
+    reveal: (ctx) => ctx.flag("PickedupBluePrint") && ctx.num("DAY") >= 1,
+    summary: () => "The letter that brought you to the door sits in the front of this notebook.",
+    detail: () =>
+      "Filed on the first morning. Copy any wording you need into your own notes. This page does not name later rooms.",
+  },
+  {
     id: "doc-office-mail",
     kind: "document",
     title: "Office mail",
