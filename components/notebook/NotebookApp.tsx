@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, type Dispatch, type SetStateAction } from "react";
+import { useMemo, useRef, useState, type Dispatch, type SetStateAction } from "react";
 import {
   Bookmark,
   LoaderCircle,
@@ -81,6 +81,7 @@ export function NotebookApp() {
   });
   const [watchPath, setWatchPath] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const filing = useRef(false);
 
   const notebook = data;
   const settingsPath = notebook?.status.watchPath ?? "";
@@ -175,6 +176,8 @@ export function NotebookApp() {
   }
 
   async function submitNote() {
+    if (filing.current) return;
+    filing.current = true;
     setSaving(true);
     try {
       const payload = {
@@ -202,6 +205,7 @@ export function NotebookApp() {
       setNoteOpen(false);
       setTab("notes");
     } finally {
+      filing.current = false;
       setSaving(false);
     }
   }
@@ -291,7 +295,7 @@ export function NotebookApp() {
                         <Input
                           value={query}
                           onChange={(event) => setQuery(event.target.value)}
-                          placeholder="Search what this save has already filed"
+                          placeholder="Search this save"
                           className="border-[#c4b48a] bg-[#f6ead0]/70 pl-8 font-print"
                         />
                       </div>
