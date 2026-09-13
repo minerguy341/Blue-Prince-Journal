@@ -179,12 +179,15 @@ export function NotebookApp() {
   }, [notebook, query, tab]);
 
   const selectedEntry =
-    filtered.entries.find((entry) => entry.id === selectedId) ??
+    (notebook
+      ? [...notebook.objectives, ...notebook.documents, ...notebook.secrets, ...notebook.facts]
+      : []
+    ).find((entry) => entry.id === selectedId) ??
     (!narrow && (tab === "objectives" || tab === "documents" || tab === "secrets")
       ? filtered.entries[0]
       : undefined);
   const selectedNote =
-    filtered.notes.find((note) => note.id === selectedId) ??
+    notebook?.notes.find((note) => note.id === selectedId) ??
     (!narrow && tab === "notes" ? filtered.notes[0] : undefined);
 
   async function reload() {
@@ -221,6 +224,7 @@ export function NotebookApp() {
       pinned: note?.pinned ?? false,
     });
     setNoteOpen(true);
+    setQuery("");
     if (!note) setSelectedId(null);
   }
 
@@ -252,6 +256,7 @@ export function NotebookApp() {
       const json = (await response.json()) as { notes: CustomNote[] };
       setData((current) => (current ? { ...current, notes: json.notes } : current));
       setNoteOpen(false);
+      setQuery("");
       setTab("notes");
       const filed = draft.id
         ? json.notes.find((note) => note.id === draft.id)
@@ -333,7 +338,7 @@ export function NotebookApp() {
               style={{ transform: narrow ? undefined : "rotate(-0.35deg)" }}
             >
               <SpiralBinding rings={narrow ? 10 : 16} />
-              <div className="grid min-h-[auto] grid-cols-1 md:min-h-[70vh] md:grid-cols-2">
+              <div className="grid min-h-[72vh] grid-cols-1 md:min-h-[70vh] md:grid-cols-2">
                 {showList ? (
                   <section className="paper relative border-b border-[#c4b48a] md:border-r md:border-b-0">
                     <div className="flex h-full flex-col pl-12 sm:pl-16">
@@ -506,7 +511,7 @@ export function NotebookApp() {
                 ) : null}
 
                 {showDetail ? (
-                  <section className="paper relative min-h-[42vh]" data-testid="facing-page">
+                  <section className="paper relative min-h-[42vh] overflow-y-auto md:overflow-visible" data-testid="facing-page">
                     <div className="flex h-full flex-col px-5 py-5 pl-12 sm:pl-8">
                       {narrow && (mobileDetailOpen || tab === "index" || tab === "settings") ? (
                         <div className="mb-3 flex items-center gap-2">
