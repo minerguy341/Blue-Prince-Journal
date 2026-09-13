@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type Dispatch, type SetStateAction } from "react";
 import {
   Bookmark,
   LoaderCircle,
@@ -13,14 +13,6 @@ import {
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -221,6 +213,18 @@ export function NotebookApp() {
     setNoteOpen(false);
   }
 
+  function selectTab(next: TabId) {
+    setTab(next);
+    setSelectedId(null);
+    setQuery("");
+    setNoteOpen(false);
+  }
+
+  function emptyText(kind: TabId) {
+    if (query.trim()) return "Nothing already filed on this save matches that search.";
+    return EMPTY[kind];
+  }
+
   if (loading || !notebook) {
     return (
       <div className="desk-vignette flex min-h-screen items-center justify-center p-6">
@@ -256,27 +260,8 @@ export function NotebookApp() {
           </div>
         </header>
 
-        <div className="relative">
-          <div className="absolute top-10 right-0 hidden flex-col gap-1 md:flex">
-            {TABS.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => {
-                  setTab(item.id);
-                  setSelectedId(null);
-                }}
-                className={`tab-cut w-24 py-2 pr-2 pl-3 text-left font-stamp text-[10px] tracking-wider uppercase shadow-md transition ${
-                  tab === item.id ? "translate-x-1 brightness-110" : "opacity-85 hover:translate-x-0.5"
-                }`}
-                style={{ background: item.tint, color: "#0d2b36" }}
-              >
-                {item.label}
-              </button>
-            ))}
-          </div>
-
-          <div className="relative mr-0 md:mr-16">
+        <div className="flex items-start gap-0">
+          <div className="relative min-w-0 flex-1">
             <div
               className="relative overflow-hidden rounded-sm shadow-[12px_18px_40px_rgb(6_18_24_/_0.55)]"
               style={{ transform: "rotate(-0.35deg)" }}
@@ -315,10 +300,7 @@ export function NotebookApp() {
                           <button
                             key={item.id}
                             type="button"
-                            onClick={() => {
-                              setTab(item.id);
-                              setSelectedId(null);
-                            }}
+                            onClick={() => selectTab(item.id)}
                             className={`shrink-0 rounded-sm px-2 py-1 font-stamp text-[10px] tracking-wider uppercase ${
                               tab === item.id ? "ring-2 ring-[#176a8a]" : ""
                             }`}
@@ -338,7 +320,7 @@ export function NotebookApp() {
                       ) : null}
 
                       {tab === "index" ? (
-                        <IndexList notebook={notebook} query={query} onOpenTab={setTab} />
+                        <IndexList notebook={notebook} query={query} onOpenTab={selectTab} />
                       ) : null}
 
                       {tab === "rooms" ? (
@@ -361,7 +343,7 @@ export function NotebookApp() {
                             ))}
                           </ul>
                         ) : (
-                          <EmptyLine text={EMPTY.rooms} />
+                          <EmptyLine text={emptyText("rooms")} />
                         )
                       ) : null}
 
@@ -384,7 +366,10 @@ export function NotebookApp() {
                                   <li key={note.id}>
                                     <button
                                       type="button"
-                                      onClick={() => setSelectedId(note.id)}
+                                      onClick={() => {
+                                        setSelectedId(note.id);
+                                        setNoteOpen(false);
+                                      }}
                                       className={`w-full rounded-sm border px-3 py-2 text-left ${
                                         selectedNote?.id === note.id
                                           ? "border-[#176a8a] bg-[#d7e6f5]/50"
@@ -403,7 +388,7 @@ export function NotebookApp() {
                                 ))}
                             </ul>
                           ) : (
-                            <EmptyLine text={EMPTY.notes} />
+                            <EmptyLine text={emptyText("notes")} />
                           )}
                         </div>
                       ) : null}
@@ -438,7 +423,7 @@ export function NotebookApp() {
                             ))}
                           </ul>
                         ) : (
-                          <EmptyLine text={EMPTY[tab]} />
+                          <EmptyLine text={emptyText(tab)} />
                         )
                       ) : null}
                     </ScrollArea>
@@ -458,6 +443,15 @@ export function NotebookApp() {
                         onSave={saveSettings}
                         statusPath={notebook.status.resolvedPath}
                         fileName={notebook.status.fileName}
+                      />
+                    ) : tab === "notes" && noteOpen ? (
+                      <NoteEditor
+                        draft={draft}
+                        setDraft={setDraft}
+                        saving={saving}
+                        onFile={() => void submitNote()}
+                        onCancel={() => setNoteOpen(false)}
+                        onDiscard={draft.id ? () => void removeNote(draft.id) : undefined}
                       />
                     ) : tab === "notes" && selectedNote ? (
                       <article className="space-y-4">
@@ -509,93 +503,124 @@ export function NotebookApp() {
                           Dots mark bedroom, hall, green, red, shop, or other — for rooms you have already walked.
                         </p>
                         <p className="font-stamp text-sm text-[#176a8a]">
-                          {notebook.rooms.length} rooms filed · {notebook.rooms.reduce((sum, room) => sum + room.count, 0)} drafts
+                          {rooms.length} shown · {notebook.rooms.length} rooms filed ·{" "}
+                          {notebook.rooms.reduce((sum, room) => sum + room.count, 0)} drafts
                         </p>
                       </div>
                     ) : (
-                      <EmptyLine text={EMPTY[tab]} />
+                      <EmptyLine text={emptyText(tab)} />
                     )}
                   </div>
                 </section>
               </div>
             </div>
           </div>
+          <nav className="relative z-20 mt-10 hidden w-[7.2rem] shrink-0 flex-col gap-1 md:flex">
+            {TABS.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => selectTab(item.id)}
+                className={`tab-cut -ml-3 py-2 pr-2 pl-4 text-left font-stamp text-[10px] tracking-wider uppercase shadow-md transition ${
+                  tab === item.id ? "ml-0 brightness-110" : "opacity-90 hover:ml-[-0.4rem]"
+                }`}
+                style={{ background: item.tint, color: "#0d2b36" }}
+              >
+                {item.label}
+              </button>
+            ))}
+          </nav>
         </div>
       </div>
-
-      <Dialog open={noteOpen} onOpenChange={setNoteOpen}>
-        <DialogContent className="paper max-w-lg border-[#c4b48a] sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="font-hand text-2xl">
-              {draft.id ? "Revise a page" : "A new page"}
-            </DialogTitle>
-            <DialogDescription className="font-print">
-              Custom notes belong to this save. They never pull names from unfound catalog entries.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-3">
-            <div className="space-y-1">
-              <Label htmlFor="note-title" className="font-stamp text-[10px] tracking-widest uppercase">
-                Title
-              </Label>
-              <Input
-                id="note-title"
-                value={draft.title}
-                onChange={(event) => setDraft((current) => ({ ...current, title: event.target.value }))}
-              />
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="note-body" className="font-stamp text-[10px] tracking-widest uppercase">
-                Body
-              </Label>
-              <Textarea
-                id="note-body"
-                rows={8}
-                className="font-script min-h-40 text-xl"
-                value={draft.body}
-                onChange={(event) => setDraft((current) => ({ ...current, body: event.target.value }))}
-              />
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="note-tags" className="font-stamp text-[10px] tracking-widest uppercase">
-                Tags
-              </Label>
-              <Input
-                id="note-tags"
-                placeholder="chess, precipice"
-                value={draft.tags}
-                onChange={(event) => setDraft((current) => ({ ...current, tags: event.target.value }))}
-              />
-            </div>
-            <label className="flex items-center gap-2 font-print text-sm">
-              <input
-                type="checkbox"
-                checked={draft.pinned}
-                onChange={(event) => setDraft((current) => ({ ...current, pinned: event.target.checked }))}
-              />
-              Pin to the front
-            </label>
-          </div>
-          <DialogFooter className="border-[#c4b48a] bg-transparent">
-            {draft.id ? (
-              <Button variant="destructive" onClick={() => void removeNote(draft.id)}>
-                <Trash2 className="size-4" />
-                Discard
-              </Button>
-            ) : null}
-            <Button className="bg-[#176a8a] text-[#f3e6c8]" disabled={saving} onClick={() => void submitNote()}>
-              <Bookmark className="size-4" />
-              File note
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
 
 function EmptyLine({ text }: { text: string }) {
   return <p className="px-3 py-6 font-script text-2xl leading-snug text-[#1f4f6b]">{text}</p>;
+}
+
+function NoteEditor({
+  draft,
+  setDraft,
+  saving,
+  onFile,
+  onCancel,
+  onDiscard,
+}: {
+  draft: { id: string; title: string; body: string; tags: string; pinned: boolean };
+  setDraft: Dispatch<
+    SetStateAction<{ id: string; title: string; body: string; tags: string; pinned: boolean }>
+  >;
+  saving: boolean;
+  onFile: () => void;
+  onCancel: () => void;
+  onDiscard?: () => void;
+}) {
+  return (
+    <div className="space-y-4">
+      <p className="font-stamp text-[10px] tracking-[0.25em] text-[#176a8a] uppercase">
+        {draft.id ? "Revise a page" : "A new page"}
+      </p>
+      <h3 className="font-hand text-3xl">{draft.id ? "Edit note" : "Write in the margin"}</h3>
+      <div className="space-y-1">
+        <Label htmlFor="note-title" className="font-stamp text-[10px] tracking-widest uppercase">
+          Title
+        </Label>
+        <Input
+          id="note-title"
+          value={draft.title}
+          onChange={(event) => setDraft((current) => ({ ...current, title: event.target.value }))}
+        />
+      </div>
+      <div className="space-y-1">
+        <Label htmlFor="note-body" className="font-stamp text-[10px] tracking-widest uppercase">
+          Body
+        </Label>
+        <Textarea
+          id="note-body"
+          rows={8}
+          className="font-script min-h-40 text-xl"
+          value={draft.body}
+          onChange={(event) => setDraft((current) => ({ ...current, body: event.target.value }))}
+        />
+      </div>
+      <div className="space-y-1">
+        <Label htmlFor="note-tags" className="font-stamp text-[10px] tracking-widest uppercase">
+          Tags
+        </Label>
+        <Input
+          id="note-tags"
+          placeholder="chess, precipice"
+          value={draft.tags}
+          onChange={(event) => setDraft((current) => ({ ...current, tags: event.target.value }))}
+        />
+      </div>
+      <label className="flex items-center gap-2 font-print text-sm">
+        <input
+          type="checkbox"
+          checked={draft.pinned}
+          onChange={(event) => setDraft((current) => ({ ...current, pinned: event.target.checked }))}
+        />
+        Pin to the front
+      </label>
+      <div className="flex flex-wrap gap-2">
+        <Button className="bg-[#176a8a] text-[#f3e6c8]" disabled={saving} onClick={onFile}>
+          <Bookmark className="size-4" />
+          File note
+        </Button>
+        <Button variant="outline" onClick={onCancel}>
+          Cancel
+        </Button>
+        {onDiscard ? (
+          <Button variant="destructive" onClick={onDiscard}>
+            <Trash2 className="size-4" />
+            Discard
+          </Button>
+        ) : null}
+      </div>
+    </div>
+  );
 }
 
 function IndexList({
