@@ -336,7 +336,7 @@ export function NotebookApp() {
               <div className="grid min-h-[auto] grid-cols-1 md:min-h-[70vh] md:grid-cols-2">
                 {showList ? (
                   <section className="paper relative border-b border-[#c4b48a] md:border-r md:border-b-0">
-                    <div className="flex h-full flex-col pl-10 sm:pl-16">
+                    <div className="flex h-full flex-col pl-12 sm:pl-16">
                       <div className="flex items-start justify-between gap-3 px-4 pt-5 pr-4">
                         <div>
                           <p className="font-stamp text-[10px] tracking-[0.25em] text-[#176a8a] uppercase">
@@ -507,7 +507,7 @@ export function NotebookApp() {
 
                 {showDetail ? (
                   <section className="paper relative min-h-[42vh]" data-testid="facing-page">
-                    <div className="flex h-full flex-col px-5 py-5 pl-10 sm:pl-8">
+                    <div className="flex h-full flex-col px-5 py-5 pl-12 sm:pl-8">
                       {narrow && (mobileDetailOpen || tab === "index" || tab === "settings") ? (
                         <div className="mb-3 flex items-center gap-2">
                           {mobileDetailOpen ? (
