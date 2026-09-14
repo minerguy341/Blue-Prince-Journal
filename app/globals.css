@@ -1,0 +1,167 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-print);
+  --font-mono: var(--font-stamp);
+  --font-heading: var(--font-hand);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 6px;
+  --radius-xl: 10px;
+  --radius-2xl: 14px;
+  --radius-3xl: 18px;
+  --radius-4xl: 24px;
+}
+
+:root {
+  --paper: #f3e6c8;
+  --paper-deep: #e8d7b0;
+  --paper-rule: #cbb992;
+  --ink: #0d2b36;
+  --ink-soft: #1a3e4f;
+  --cyan: #176a8a;
+  --sky: #6a9bd1;
+  --wash: #a7c6ed;
+  --brass: #b08d57;
+  --steel: #8a9aa3;
+  --memo-blue: #3d6ea8;
+  --memo-red: #a33c3c;
+  --memo-green: #3d7a4a;
+  --desk: #0d2b36;
+  --background: #f3e6c8;
+  --foreground: #0d2b36;
+  --card: #efe4c8;
+  --card-foreground: #0d2b36;
+  --popover: #f6ead0;
+  --popover-foreground: #0d2b36;
+  --primary: #176a8a;
+  --primary-foreground: #f3e6c8;
+  --secondary: #e6d7b5;
+  --secondary-foreground: #0d2b36;
+  --muted: #e4d4ae;
+  --muted-foreground: #1f4f6b;
+  --accent: #d7e6f5;
+  --accent-foreground: #0d2b36;
+  --destructive: #a33c3c;
+  --border: #c4b48a;
+  --input: #c4b48a;
+  --ring: #4c8fd5;
+  --chart-1: #a7c6ed;
+  --chart-2: #6a9bd1;
+  --chart-3: #176a8a;
+  --chart-4: #1f4f6b;
+  --chart-5: #0d2b36;
+  --radius: 0.2rem;
+  --sidebar: #efe4c8;
+  --sidebar-foreground: #0d2b36;
+  --sidebar-primary: #176a8a;
+  --sidebar-primary-foreground: #f3e6c8;
+  --sidebar-accent: #e6d7b5;
+  --sidebar-accent-foreground: #0d2b36;
+  --sidebar-border: #c4b48a;
+  --sidebar-ring: #4c8fd5;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html,
+  body {
+    height: 100%;
+  }
+  body {
+    color: var(--ink);
+    font-family: var(--font-print), "Source Serif 4", serif;
+    background-color: var(--desk);
+    background-image:
+      linear-gradient(90deg, rgb(167 198 237 / 0.05) 1px, transparent 1px),
+      linear-gradient(rgb(167 198 237 / 0.05) 1px, transparent 1px),
+      repeating-linear-gradient(
+        90deg,
+        rgb(13 43 54 / 0.55) 0 2px,
+        rgb(26 62 79 / 0.7) 2px 7px,
+        rgb(13 43 54 / 0.6) 7px 10px
+      );
+    background-size:
+      28px 28px,
+      28px 28px,
+      100% 100%;
+  }
+}
+
+.font-stamp {
+  font-family: var(--font-stamp), "Special Elite", ui-monospace, monospace;
+}
+.font-hand {
+  font-family: var(--font-hand), "Architects Daughter", cursive;
+}
+.font-script {
+  font-family: var(--font-script), Caveat, cursive;
+}
+.font-print {
+  font-family: var(--font-print), "Source Serif 4", serif;
+}
+
+.paper {
+  background-color: var(--paper);
+  background-image:
+    linear-gradient(90deg, rgb(23 106 138 / 0.05) 1px, transparent 1px),
+    linear-gradient(rgb(203 185 146 / 0.55) 1px, transparent 1px);
+  background-size: 22px 28px;
+  background-position: 0 8px;
+  box-shadow:
+    inset 0 0 40px rgb(176 141 87 / 0.08),
+    inset 18px 0 28px rgb(13 43 54 / 0.08);
+}
+
+.desk-vignette {
+  background:
+    radial-gradient(ellipse at center, transparent 40%, rgb(6 18 24 / 0.55) 100%);
+}
+
+.day-stamp {
+  border: 3px double #176a8a;
+  color: #176a8a;
+  transform: rotate(-8deg);
+  letter-spacing: 0.12em;
+}
+
+.tab-cut {
+  clip-path: polygon(8px 0, calc(100% - 8px) 0, 100% 12px, 100% calc(100% - 12px), calc(100% - 8px) 100%, 8px 100%, 0 calc(100% - 12px), 0 12px);
+}
